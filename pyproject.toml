@@ -1,0 +1,14 @@
+[project]
+name = "palworld-server-launcher"
+version = "0.1.0"
+description = "A simple tool to install and manage a Palworld dedicated server on Linux."
+authors = [""]
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "typer[all]",
+    "rich",
+]
+
+[project.scripts]
+palworld-launcher = "palworld_server_launcher:app"

@@ -1,0 +1,14 @@
+[Unit]
+Description=Pal Server
+After=network.target
+
+[Service]
+User={user}
+Group={user}
+Type=simple
+ExecStart={exec_start_path} -useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS port={port} players={players}
+Restart=always
+RestartSec=180
+
+[Install]
+WantedBy=multi-user.target 
