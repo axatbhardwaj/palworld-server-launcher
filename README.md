@@ -33,8 +33,8 @@ This command will install the server, configure it with the specified port and p
 # Install the server with default settings (port 8211, 32 players)
 palworld-server-launcher install
 
-# Install with custom settings
-palworld-server-launcher install --port 8211 --players 16
+# Install with custom settings and start the server immediately
+palworld-server-launcher install --port 8211 --players 16 --start
 ```
 
 ### Manage the Server
@@ -53,4 +53,10 @@ palworld-server-launcher restart
 
 # Check the server's status
 palworld-server-launcher status
+
+# Enable the server to start automatically on boot
+palworld-server-launcher enable
+
+# Disable the server from starting on boot
+palworld-server-launcher disable
 ``` 

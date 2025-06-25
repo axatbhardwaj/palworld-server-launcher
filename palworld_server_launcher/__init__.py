@@ -153,6 +153,9 @@ def _setup_polkit() -> None:
 def install(
     port: int = typer.Option(8211, help="Port to run the server on."),
     players: int = typer.Option(32, help="Maximum number of players."),
+    start: bool = typer.Option(
+        False, "--start", help="Start the server immediately after installation."
+    ),
 ) -> None:
     """Install the Palworld dedicated server and create a systemd service."""
     if Path.home() == Path("/root"):
@@ -166,8 +169,19 @@ def install(
     _setup_polkit()
 
     console.print("Installation complete!")
-    console.print("You can now start the server with: systemctl start palserver")
-    console.print("And enable it to start on boot with: systemctl enable palserver")
+
+    if start:
+        console.print("Starting the server...")
+        _run_command("systemctl start palserver")
+        console.print("Server started successfully!")
+    else:
+        console.print(
+            "You can now start the server with: palworld-server-launcher start"
+        )
+
+    console.print(
+        "To enable the server to start on boot, run: palworld-server-launcher enable"
+    )
 
 
 @app.command()
@@ -192,6 +206,18 @@ def restart() -> None:
 def status() -> None:
     """Check the status of the Palworld server."""
     _run_command("systemctl status palserver", check=False)
+
+
+@app.command()
+def enable() -> None:
+    """Enable the Palworld server to start on boot."""
+    _run_command("systemctl enable palserver")
+
+
+@app.command()
+def disable() -> None:
+    """Disable the Palworld server from starting on boot."""
+    _run_command("systemctl disable palserver")
 
 
 if __name__ == "__main__":
