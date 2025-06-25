@@ -1,0 +1,2 @@
+[console_scripts]
+palworld-server-launcher = palworld_server_launcher:app

@@ -1,0 +1,9 @@
+LICENSE
+README.md
+pyproject.toml
+palworld_server_launcher.egg-info/PKG-INFO
+palworld_server_launcher.egg-info/SOURCES.txt
+palworld_server_launcher.egg-info/dependency_links.txt
+palworld_server_launcher.egg-info/entry_points.txt
+palworld_server_launcher.egg-info/requires.txt
+palworld_server_launcher.egg-info/top_level.txt

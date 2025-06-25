@@ -1,14 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "palworld-server-launcher"
-version = "0.1.0"
+version = "0.1.1"
+authors = [
+    { name = "axatbhardwaj", email = "axatbhardwaj@gmail.com" },
+]
 description = "A simple tool to install and manage a Palworld dedicated server on Linux."
-authors = [""]
 readme = "README.md"
+license = "MIT"
 requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+]
 dependencies = [
-    "typer[all]",
+    "typer",
     "rich",
 ]
 
 [project.scripts]
-palworld-launcher = "palworld_server_launcher:app"
+palworld-server-launcher = "palworld_server_launcher:app"
+
+[tool.setuptools]
+packages = ["palworld_server_launcher"]
+
+[tool.setuptools.package-data]
+"palworld_server_launcher" = ["templates/*"]
