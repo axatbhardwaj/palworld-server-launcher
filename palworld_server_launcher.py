@@ -13,6 +13,7 @@ from rich.console import Console
 
 app = typer.Typer()
 console = Console()
+STEAM_DIR = Path.home() / ".steam/steam"
 
 
 def _get_template(name: str) -> str:
@@ -28,22 +29,48 @@ def _get_template(name: str) -> str:
 
 
 def _run_command(command: str, check: bool = True) -> None:
-    """Runs a command and prints its output."""
+    """Runs a command and prints its output in real-time."""
+    console.print(f"Executing: [bold cyan]{command}[/bold cyan]")
     try:
-        process = subprocess.run(
-            command, check=check, shell=True, text=True, capture_output=True
-        )
-        if process.stdout:
-            rich.print(process.stdout)
-        if process.stderr:
-            rich.print(process.stderr, file=sys.stderr)
-    except subprocess.CalledProcessError as e:
-        rich.print(f"Error executing command: {e}", file=sys.stderr)
+        with subprocess.Popen(
+            command,
+            shell=True,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        ) as process:
+            if process.stdout:
+                for line in iter(process.stdout.readline, ""):
+                    rich.print(line, end="")
+
+            return_code = process.wait()
+
+            if check and return_code != 0:
+                raise subprocess.CalledProcessError(return_code, command)
+
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        rich.print(f"\nError executing command: {e}", file=sys.stderr)
         sys.exit(1)
+
+
+def _repair_package_manager() -> None:
+    """Tries to repair the apt/dpkg system."""
+    console.print("Attempting to repair package manager...")
+    _run_command("sudo pkill -f 'apt|dpkg'", check=False)
+    _run_command("sudo rm /var/lib/apt/lists/lock", check=False)
+    _run_command("sudo rm /var/cache/apt/archives/lock", check=False)
+    _run_command("sudo rm /var/lib/dpkg/lock*", check=False)
+    _run_command("sudo rm /var/cache/debconf/*.dat", check=False)
+    _run_command("sudo dpkg --configure -a", check=False)
+    _run_command("sudo apt-get -f install -y")
+    _run_command("sudo apt-get autoremove -y", check=False)
+    _run_command("sudo apt-get clean")
+    _run_command("sudo apt update")
 
 
 def _install_steamcmd() -> None:
     """Install steamcmd if not already installed."""
+    _repair_package_manager()
     console.print("Checking for steamcmd...")
     try:
         subprocess.run(
@@ -52,16 +79,26 @@ def _install_steamcmd() -> None:
         console.print("steamcmd is already installed.")
     except subprocess.CalledProcessError:
         console.print("steamcmd not found. Installing steamcmd...")
+        _run_command("sudo apt install -y software-properties-common")
         _run_command("sudo add-apt-repository multiverse -y")
         _run_command("sudo dpkg --add-architecture i386")
         _run_command("sudo apt update")
-        _run_command("sudo apt install steamcmd -y")
+        _run_command(
+            "echo 'steam steam/question select \"I AGREE\"' | sudo debconf-set-selections"
+        )
+        _run_command(
+            "echo 'steam steam/license note \"\"' | sudo debconf-set-selections"
+        )
+        _run_command("sudo apt install -y steamcmd")
 
 
 def _install_palworld() -> None:
     """Install Palworld dedicated server using steamcmd."""
     console.print("Installing Palworld dedicated server...")
     _run_command("steamcmd +login anonymous +app_update 2394010 validate +quit")
+    pal_server_script = STEAM_DIR / "steamapps/common/PalServer/PalServer.sh"
+    if pal_server_script.exists():
+        _run_command(f"chmod +x {pal_server_script}")
 
 
 def _fix_steam_sdk() -> None:
@@ -70,8 +107,7 @@ def _fix_steam_sdk() -> None:
     steam_sdk_path = Path.home() / ".steam/sdk64"
     steam_sdk_path.mkdir(parents=True, exist_ok=True)
     steam_client_so = (
-        Path.home()
-        / "Steam/steamapps/common/Steamworks SDK Redist/linux64/steamclient.so"
+        STEAM_DIR / "steamapps/common/Steamworks SDK Redist/linux64/steamclient.so"
     )
     if steam_client_so.exists():
         _run_command(f"cp {steam_client_so} {steam_sdk_path}/")
@@ -88,24 +124,26 @@ def _create_service_file(port: int, players: int) -> None:
     user = Path.home().name
     service_file = Path("/etc/systemd/system/palserver.service")
     template = _get_template("palserver.service.template")
-    exec_start_path = f"{Path.home()}/Steam/steamapps/common/PalServer/PalServer.sh"
+    pal_server_dir = STEAM_DIR / "steamapps/common/PalServer"
+    exec_start_path = pal_server_dir / "PalServer.sh"
     service_content = template.format(
         user=user,
         port=port,
         players=players,
         exec_start_path=exec_start_path,
+        working_directory=pal_server_dir,
     )
     _run_command(f"echo '{service_content}' | sudo tee {service_file}")
+    _run_command("sudo systemctl daemon-reload")
 
 
 def _setup_polkit() -> None:
     """Allow user to control the service without sudo."""
     console.print("Setting up policy for non-sudo control...")
     user = Path.home().name
-    policy_file = Path(
-        "/etc/polkit-1/localauthority/50-local.d/palserver-service-control.pkla"
-    )
-    template = _get_template("palserver-service-control.pkla.template")
+    policy_file = Path("/etc/polkit-1/rules.d/40-palserver.rules")
+    _run_command(f"sudo mkdir -p {policy_file.parent}")
+    template = _get_template("palserver.rules.template")
     policy_content = template.format(user=user)
     _run_command(f"echo '{policy_content}' | sudo tee {policy_file}")
     _run_command("sudo systemctl restart polkit.service")
@@ -153,7 +191,7 @@ def restart() -> None:
 @app.command()
 def status() -> None:
     """Check the status of the Palworld server."""
-    _run_command("systemctl status palserver")
+    _run_command("systemctl status palserver", check=False)
 
 
 if __name__ == "__main__":

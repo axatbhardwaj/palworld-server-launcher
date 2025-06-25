@@ -6,7 +6,8 @@ After=network.target
 User={user}
 Group={user}
 Type=simple
-ExecStart={exec_start_path} -useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS port={port} players={players}
+WorkingDirectory={working_directory}
+ExecStart={exec_start_path} -port={port} -players={players} -useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS
 Restart=always
 RestartSec=180
 
