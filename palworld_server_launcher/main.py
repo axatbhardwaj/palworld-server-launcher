@@ -20,6 +20,20 @@ PAL_SETTINGS_PATH = PAL_SERVER_DIR / "Pal/Saved/Config/LinuxServer/PalWorldSetti
 DEFAULT_PAL_SETTINGS_PATH = PAL_SERVER_DIR / "DefaultPalWorldSettings.ini"
 
 
+def _get_os_id() -> str:
+    """Gets the OS ID from /etc/os-release."""
+    try:
+        with open("/etc/os-release") as f:
+            for line in f:
+                if line.startswith("ID="):
+                    # Removes quotes if present, e.g., ID="ubuntu"
+                    return line.strip().split("=")[1].strip('"')
+    except FileNotFoundError:
+        rich.print("Could not determine OS from /etc/os-release.", file=sys.stderr)
+        return ""
+    return ""
+
+
 def _get_template(name: str) -> str:
     """Reads a template file from the script's directory."""
     template_path = Path(__file__).parent / "templates" / name
@@ -84,7 +98,22 @@ def _install_steamcmd() -> None:
     except subprocess.CalledProcessError:
         console.print("steamcmd not found. Installing steamcmd...")
         _run_command("sudo apt install -y software-properties-common")
-        _run_command("sudo add-apt-repository multiverse -y")
+
+        os_id = _get_os_id()
+        if os_id == "ubuntu":
+            _run_command("sudo add-apt-repository multiverse -y")
+        elif os_id == "debian":
+            console.print("Enabling contrib and non-free repositories for Debian...")
+            _run_command(
+                "sudo sed -i -E 's/^(deb.*) main$/\\1 main contrib non-free/' /etc/apt/sources.list"
+            )
+        else:
+            rich.print(
+                f"Unsupported OS: '{os_id}'. This script currently supports Ubuntu and Debian.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
         _run_command("sudo dpkg --add-architecture i386")
         _run_command("sudo apt update")
         _run_command(
