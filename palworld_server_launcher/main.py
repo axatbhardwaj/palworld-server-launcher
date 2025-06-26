@@ -99,14 +99,17 @@ def _install_steamcmd() -> None:
         console.print("steamcmd not found. Installing steamcmd...")
         _run_command("sudo apt install -y software-properties-common")
 
+        package_to_install = ""
         os_id = _get_os_id()
         if os_id == "ubuntu":
             _run_command("sudo add-apt-repository multiverse -y")
+            package_to_install = "steamcmd"
         elif os_id == "debian":
             console.print("Enabling contrib and non-free repositories for Debian...")
             _run_command(
                 "sudo sed -i -E 's/^(deb.*) main$/\\1 main contrib non-free/' /etc/apt/sources.list"
             )
+            package_to_install = "steam-installer"
         else:
             rich.print(
                 f"Unsupported OS: '{os_id}'. This script currently supports Ubuntu and Debian.",
@@ -122,7 +125,7 @@ def _install_steamcmd() -> None:
         _run_command(
             "echo 'steam steam/license note \"\"' | sudo debconf-set-selections"
         )
-        _run_command("sudo apt install -y steamcmd")
+        _run_command(f"sudo apt install -y {package_to_install}")
 
 
 def _install_palworld() -> None:
