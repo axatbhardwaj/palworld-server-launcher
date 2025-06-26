@@ -101,13 +101,17 @@ def _install_steamcmd() -> None:
         _run_command("sudo add-apt-repository multiverse -y")
         _run_command("sudo dpkg --add-architecture i386")
         _run_command("sudo apt-get update")
+
+        # Pre-accept the license agreement for steamcmd
         _run_command(
-            "echo 'steam steam/question select \"I AGREE\"' | sudo debconf-set-selections"
+            "echo 'steamcmd steamcmd/question select I AGREE' | sudo debconf-set-selections"
         )
         _run_command(
-            "echo 'steam steam/license note \"\"' | sudo debconf-set-selections"
+            "echo 'steamcmd steamcmd/license note' | sudo debconf-set-selections"
         )
-        _run_command("sudo DEBIAN_FRONTEND=noninteractive apt-get install -y steamcmd")
+
+        # Now install steamcmd
+        _run_command("sudo apt-get install -y steamcmd")
 
 
 def _install_palworld() -> None:

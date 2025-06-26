@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: palworld-server-launcher
-Version: 0.1.6
+Version: 0.1.11
 Summary: A simple tool to install and manage a Palworld dedicated server on Linux.
 Author-email: axatbhardwaj <axatbhardwaj@gmail.com>
 License-Expression: MIT
@@ -27,7 +27,7 @@ A simple command-line tool to help you install, manage, and run a dedicated Palw
 
 ## Prerequisites
 
-- A Linux distribution based on Debian or Ubuntu.
+- An Ubuntu Linux distribution.
 - `sudo` privileges for the user running the script.
 
 ## Installation
