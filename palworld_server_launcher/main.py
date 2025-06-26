@@ -79,8 +79,8 @@ def _repair_package_manager() -> None:
     _run_command("sudo rm /var/cache/apt/archives/lock", check=False)
     _run_command("sudo rm /var/lib/dpkg/lock*", check=False)
     _run_command("sudo rm /var/cache/debconf/*.dat", check=False)
-    _run_command("sudo dpkg --configure -a", check=False)
-    _run_command("sudo apt-get -f install -y")
+    _run_command("sudo DEBIAN_FRONTEND=noninteractive dpkg --configure -a", check=False)
+    _run_command("sudo DEBIAN_FRONTEND=noninteractive apt-get -f install -y")
     _run_command("sudo apt-get autoremove -y", check=False)
     _run_command("sudo apt-get clean")
     _run_command("sudo apt-get update")
@@ -97,12 +97,17 @@ def _install_steamcmd() -> None:
         console.print("steamcmd is already installed.")
     except subprocess.CalledProcessError:
         console.print("steamcmd not found. Installing steamcmd...")
-        _run_command("sudo apt-get install -y software-properties-common")
+        _run_command(
+            "sudo DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-common"
+        )
         _run_command("sudo add-apt-repository multiverse -y")
         _run_command("sudo dpkg --add-architecture i386")
-        _run_command("sudo apt-get update")
 
-        # Pre-accept the license agreement for steamcmd
+        # Pre-accept the license agreement for steamcmd (must be before update/install)
+        _run_command(
+            "echo 'steam steam/question select I AGREE' | sudo debconf-set-selections"
+        )
+        _run_command("echo 'steam steam/license note' | sudo debconf-set-selections")
         _run_command(
             "echo 'steamcmd steamcmd/question select I AGREE' | sudo debconf-set-selections"
         )
@@ -110,8 +115,13 @@ def _install_steamcmd() -> None:
             "echo 'steamcmd steamcmd/license note' | sudo debconf-set-selections"
         )
 
-        # Now install steamcmd
-        _run_command("sudo apt-get install -y steamcmd")
+        _run_command("sudo apt-get update")
+
+        # Try to install steamcmd with additional license acceptance
+        _run_command("sudo DEBIAN_FRONTEND=noninteractive apt-get install -y steamcmd")
+
+        # If the above fails, try an alternative approach
+        _run_command("sudo dpkg-reconfigure -fnoninteractive steamcmd", check=False)
 
 
 def _install_palworld() -> None:
