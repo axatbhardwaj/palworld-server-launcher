@@ -12,7 +12,7 @@ A simple command-line tool to help you install, manage, and run a dedicated Palw
 
 ## Prerequisites
 
-- A Linux distribution based on Debian or Ubuntu.
+- An Ubuntu Linux distribution.
 - `sudo` privileges for the user running the script.
 
 ## Installation

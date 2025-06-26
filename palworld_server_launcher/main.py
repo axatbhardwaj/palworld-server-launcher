@@ -83,7 +83,7 @@ def _repair_package_manager() -> None:
     _run_command("sudo apt-get -f install -y")
     _run_command("sudo apt-get autoremove -y", check=False)
     _run_command("sudo apt-get clean")
-    _run_command("sudo apt update")
+    _run_command("sudo apt-get update")
 
 
 def _install_steamcmd() -> None:
@@ -97,35 +97,17 @@ def _install_steamcmd() -> None:
         console.print("steamcmd is already installed.")
     except subprocess.CalledProcessError:
         console.print("steamcmd not found. Installing steamcmd...")
-        _run_command("sudo apt install -y software-properties-common")
-
-        package_to_install = ""
-        os_id = _get_os_id()
-        if os_id == "ubuntu":
-            _run_command("sudo add-apt-repository multiverse -y")
-            package_to_install = "steamcmd"
-        elif os_id == "debian":
-            console.print("Enabling contrib and non-free repositories for Debian...")
-            _run_command(
-                "sudo sed -i -E 's/^(deb.*) main$/\\1 main contrib non-free/' /etc/apt/sources.list"
-            )
-            package_to_install = "steam-installer"
-        else:
-            rich.print(
-                f"Unsupported OS: '{os_id}'. This script currently supports Ubuntu and Debian.",
-                file=sys.stderr,
-            )
-            sys.exit(1)
-
+        _run_command("sudo apt-get install -y software-properties-common")
+        _run_command("sudo add-apt-repository multiverse -y")
         _run_command("sudo dpkg --add-architecture i386")
-        _run_command("sudo apt update")
+        _run_command("sudo apt-get update")
         _run_command(
             "echo 'steam steam/question select \"I AGREE\"' | sudo debconf-set-selections"
         )
         _run_command(
             "echo 'steam steam/license note \"\"' | sudo debconf-set-selections"
         )
-        _run_command(f"sudo apt install -y {package_to_install}")
+        _run_command("sudo DEBIAN_FRONTEND=noninteractive apt-get install -y steamcmd")
 
 
 def _install_palworld() -> None:
