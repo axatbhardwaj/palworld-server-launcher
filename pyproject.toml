@@ -22,7 +22,7 @@ dependencies = [
 ]
 
 [project.scripts]
-palworld-server-launcher = "palworld_server_launcher:app"
+palworld-server-launcher = "palworld_server_launcher.main:app"
 
 [tool.setuptools]
 packages = ["palworld_server_launcher"]

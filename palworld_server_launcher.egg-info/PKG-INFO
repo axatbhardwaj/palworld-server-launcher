@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: palworld-server-launcher
-Version: 0.1.1
+Version: 0.1.2
 Summary: A simple tool to install and manage a Palworld dedicated server on Linux.
 Author-email: axatbhardwaj <axatbhardwaj@gmail.com>
 License-Expression: MIT
@@ -48,8 +48,8 @@ This command will install the server, configure it with the specified port and p
 # Install the server with default settings (port 8211, 32 players)
 palworld-server-launcher install
 
-# Install with custom settings
-palworld-server-launcher install --port 8211 --players 16
+# Install with custom settings and start the server immediately
+palworld-server-launcher install --port 8211 --players 16 --start
 ```
 
 ### Manage the Server
@@ -68,4 +68,10 @@ palworld-server-launcher restart
 
 # Check the server's status
 palworld-server-launcher status
+
+# Enable the server to start automatically on boot
+palworld-server-launcher enable
+
+# Disable the server from starting on boot
+palworld-server-launcher disable
 ``` 
