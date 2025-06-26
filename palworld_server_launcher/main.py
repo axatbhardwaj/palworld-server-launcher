@@ -191,6 +191,32 @@ def _save_settings(settings: dict[str, str]) -> None:
     console.print("Settings saved successfully.")
 
 
+def _create_settings_from_default() -> None:
+    """Creates PalWorldSettings.ini from the default template."""
+    if not DEFAULT_PAL_SETTINGS_PATH.exists():
+        console.print(
+            f"Default configuration file not found at {DEFAULT_PAL_SETTINGS_PATH}",
+            file=sys.stderr,
+        )
+        console.print(
+            "Cannot create a new settings file. Please run `install` first or run the server once.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    console.print(
+        "Configuration file is missing, empty, or corrupted. Creating a new one from default settings."
+    )
+    PAL_SETTINGS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    content = DEFAULT_PAL_SETTINGS_PATH.read_text()
+    # The game uses PalGameWorldSettings in the saved config, so we replace the section header
+    content = content.replace(
+        "[/Script/Pal.PalWorldSettings]",
+        "[/Script/Pal.PalGameWorldSettings]",
+    )
+    PAL_SETTINGS_PATH.write_text(content)
+
+
 def _display_settings(settings: dict[str, str]) -> None:
     """Displays the settings in a table."""
     table = rich.table.Table(
@@ -305,25 +331,25 @@ def disable() -> None:
 
 @app.command(name="edit-settings")
 def edit_settings() -> None:
-    """Edit PalWorldSettings.ini interactively."""
-    if not PAL_SETTINGS_PATH.exists():
-        console.print("PalWorldSettings.ini not found, creating from default.")
-        if not DEFAULT_PAL_SETTINGS_PATH.exists():
-            console.print(
-                "[bold red]DefaultPalWorldSettings.ini not found. Please run the install command first.[/bold red]"
-            )
-            sys.exit(1)
-        PAL_SETTINGS_PATH.parent.mkdir(parents=True, exist_ok=True)
-        PAL_SETTINGS_PATH.write_text(DEFAULT_PAL_SETTINGS_PATH.read_text())
-
+    """Edit the PalWorldSettings.ini file."""
     try:
         settings = _parse_settings()
+    except (FileNotFoundError, ValueError):
+        _create_settings_from_default()
+        try:
+            settings = _parse_settings()
+        except (ValueError, FileNotFoundError) as e:
+            rich.print(
+                f"An error occurred after creating default settings: {e}",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+    try:
         _interactive_edit_loop(settings)
         _save_settings(settings)
-        if typer.confirm("Do you want to restart the server to apply changes?"):
-            restart()
     except Exception as e:
-        console.print(f"[bold red]An error occurred: {e}[/bold red]")
+        rich.print(f"An error occurred during settings edit: {e}", file=sys.stderr)
         sys.exit(1)
 
 
