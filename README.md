@@ -59,4 +59,13 @@ palworld-server-launcher enable
 
 # Disable the server from starting on boot
 palworld-server-launcher disable
+
+### Update the Server
+
+This command will update the Palworld dedicated server to the latest version using SteamCMD.
+
+```bash
+# Update the server
+palworld-server-launcher update
+```
 ``` 

@@ -124,13 +124,18 @@ def _install_steamcmd() -> None:
         _run_command("sudo dpkg-reconfigure -fnoninteractive steamcmd", check=False)
 
 
+def _run_steamcmd_update():
+    """Runs steamcmd to install/update Palworld server."""
+    _run_command(f"steamcmd +force_install_dir '{PAL_SERVER_DIR}' +login anonymous +app_update 2394010 validate +quit")
+    pal_server_script = PAL_SERVER_DIR / "PalServer.sh"
+    if pal_server_script.exists():
+        _run_command(f"chmod +x {pal_server_script}")
+
+
 def _install_palworld() -> None:
     """Install Palworld dedicated server using steamcmd."""
     console.print("Installing Palworld dedicated server...")
-    _run_command("steamcmd +login anonymous +app_update 2394010 validate +quit")
-    pal_server_script = STEAM_DIR / "steamapps/common/PalServer/PalServer.sh"
-    if pal_server_script.exists():
-        _run_command(f"chmod +x {pal_server_script}")
+    _run_steamcmd_update()
 
 
 def _fix_steam_sdk() -> None:
@@ -355,6 +360,14 @@ def enable() -> None:
 def disable() -> None:
     """Disable the Palworld server from starting on boot."""
     _run_command("systemctl disable palserver")
+
+
+@app.command()
+def update() -> None:
+    """Update the Palworld dedicated server."""
+    console.print("Updating Palworld dedicated server...")
+    _run_steamcmd_update()
+    console.print("Update complete! Restart the server for the changes to take effect.")
 
 
 @app.command(name="edit-settings")
