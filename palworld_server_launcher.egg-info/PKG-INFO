@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: palworld-server-launcher
-Version: 0.1.17
+Version: 0.1.18
 Summary: A simple tool to install and manage a Palworld dedicated server on Linux.
 Author-email: axatbhardwaj <axatbhardwaj@gmail.com>
 License-Expression: MIT
@@ -74,4 +74,13 @@ palworld-server-launcher enable
 
 # Disable the server from starting on boot
 palworld-server-launcher disable
+
+### Update the Server
+
+This command will update the Palworld dedicated server to the latest version using SteamCMD.
+
+```bash
+# Update the server
+palworld-server-launcher update
+```
 ``` 
